@@ -9,8 +9,8 @@ class FileHelper
 {
     public static function upload($file, string $path): string
     {
-        $fileName = time() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs($path, $fileName, 'public');
+        // $fileName = time() . '.' . $file->getClientOriginalExtension();
+        $path = Storage::disk('public')->put($path, $file);
         return 'storage/' . $path;
     }
 
