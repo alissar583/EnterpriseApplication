@@ -25,6 +25,10 @@ Route::controller(AuthController::class)->group(function(){
 
     Route::post('login', 'login');
 
+    Route::post('enable-two-factor','enableTwoFactorAuthentication')->middleware('auth:sanctum');
+
+    Route::post('verify-code-two-factory','verifyTwoFactorAuthentication')->middleware('auth:sanctum');
+
 });
 
         
