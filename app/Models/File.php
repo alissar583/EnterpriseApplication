@@ -10,6 +10,7 @@ class File extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['group_id', 'path'];
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);
