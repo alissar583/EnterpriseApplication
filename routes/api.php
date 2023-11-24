@@ -20,25 +20,19 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::controller(AuthController::class)->group(function(){
+Route::controller(AuthController::class)->group(function () {
 
     Route::post('register', 'register');
-
     Route::post('login', 'login');
-
-    Route::post('enable-two-factor','enableTwoFactorAuthentication')->middleware('auth:sanctum');
-
-    Route::post('verify-code-two-factory','verifyTwoFactorAuthentication')->middleware('auth:sanctum');
-
 });
 
-        
+Route::middleware('auth:sanctum')->group(function () {
 
-Route::middleware('auth:sanctum')->group( function () {
+    Route::controller(AuthController::class)->group(function () {
 
-    Route::resource('products', ProductController::class);
+        Route::post('enable-two-factor', 'enableTwoFactorAuthentication');
+        Route::post('verify-code-two-factory', 'verifyTwoFactorAuthentication');
+    });
 
+    Route::resource('files', FileController::class);
 });
-
-
-Route::resource('files', FileController::class);

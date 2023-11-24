@@ -13,7 +13,7 @@ class StoreFileRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $user = User::query()->first(); //TODO replace to auth()->user()
+        $user = auth()->user();
         return $user->groups()->where('groups.id', $this->group_id)->exists();
     }
 
