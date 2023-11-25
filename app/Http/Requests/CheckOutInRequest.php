@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\FileStatusEnum;
+use App\Models\File;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class RegisterRequest extends FormRequest
+class CheckOutInRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +25,10 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
+            'type' => ['required', Rule::enum(FileStatusEnum::class)],
+            'ids' => ['required', 'exists:files,id', 'array', $this->type == FileStatusEnum::OUT->value ? 'size:1' : 'array'],
+            'ids.*' => ['distinct'],
+            'file' => [Rule::requiredIf(fn () => $this->type == FileStatusEnum::OUT->value), 'file']
         ];
     }
 }

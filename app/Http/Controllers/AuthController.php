@@ -28,8 +28,7 @@ class AuthController extends Controller
         $user = User::create($input);
         $success['token'] =  $user->createToken('MyApp')->plainTextToken;
         $success['name'] =  $user->name;
-
-        return $success;
+        return $this->sendResponse($success);
     }
 
     public function enableTwoFactorAuthentication(Request $request)
@@ -50,10 +49,10 @@ class AuthController extends Controller
         // Send the email
         $email = $user->email; // Replace with the user's email address
         Mail::to($email)->send(new VerificationCodeMail($code));
-
-        return response()->json([
-            'message' => 'Two-factor authentication enabled.'
-        ]);
+        return $this->sendResponse([], 'Two-factor authentication enabled.');
+        // return response()->json([
+        //     'message' => 'Two-factor authentication enabled.'
+        // ]);
     }
 
     public function verifyTwoFactorAuthentication(Request $request)
@@ -64,11 +63,13 @@ class AuthController extends Controller
         if (now() >= $user->code_expired_at && $user->verification_code == $code) {
 
             $user->update(['two_factor_verified' => true]);
+            return $this->sendResponse([], 'Two-factor authentication verified successfully.');
 
-            return 'Two-factor authentication verified successfully.';
+            // return 'Two-factor authentication verified successfully.';
         }
+        return $this->sendError([], 'Invalid two-factor authentication code. Please try again.', 200);
 
-        return 'Invalid two-factor authentication code. Please try again.';
+        // return 'Invalid two-factor authentication code. Please try again.';
     }
 
     /**
@@ -78,14 +79,21 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        $request->validate([
+            'email' => ['required', 'exists:users,email', 'email'],
+            'password' => ['required'],
+        ]);
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $user = Auth::user();
             $success['token'] =  $user->createToken('MyApp')->plainTextToken;
             $success['name'] =  $user->name;
+            return $this->sendResponse($success);
 
-            return  $success;
+            // return  $success;
         } else {
-            return 'Unauthorised.';
+        return $this->sendError([], 'Unauthorised.', 403);
+
+            // return 'Unauthorised.';
         }
     }
 }

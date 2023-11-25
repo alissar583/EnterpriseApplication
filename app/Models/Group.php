@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\App;
 
 class Group extends Model
 {
@@ -18,6 +19,6 @@ class Group extends Model
 
     public function files(): HasMany
     {
-        return $this->hasMany(File::class);
+        return $this->hasMany(\App\Models\File::class);
     }
 }
