@@ -51,11 +51,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function files(): BelongsToMany
     {
-        return $this->belongsToMany(File::class, 'user_file');
+        return $this->belongsToMany(File::class, 'user_file')
+        ->withPivot('created_at')
+        ->withPivot('updated_at');
     }
 
     public function groups(): BelongsToMany
     {
         return $this->belongsToMany(Group::class, 'user_group');
+    }
+
+    public function userFiles(){
+        return $this->hasMany(UserFile::class);
     }
 }

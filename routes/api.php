@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\AuthController;
+use GuzzleHttp\Cookie\FileCookieJar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,5 +38,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('files', FileController::class)->only(['index', 'store']);
     Route::post('files/check-in-out', [FileController::class, 'checInOut'])->middleware('throttle:60,1');
     Route::get('files/get-check-in', [FileController::class, 'getCheckInFiles']);
+    Route::get('reports',[FileController::class,'reports']);
 
 });
