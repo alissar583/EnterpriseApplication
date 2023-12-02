@@ -59,8 +59,11 @@ class AuthController extends Controller
     {
         $user = $request->user();
         $code = $request->input('code');
+        //now "2023-12-02T14:32:01.345617Z"
+        // exp "2023-12-02T14:35:05.000000Z"
 
-        if (now() >= $user->code_expired_at && $user->verification_code == $code) {
+        // return $user->code_expired_at;
+        if (now() < $user->code_expired_at && $user->verification_code == $code) {
 
             $user->update(['two_factor_verified' => true]);
             return $this->sendResponse([], 'Two-factor authentication verified successfully.');
