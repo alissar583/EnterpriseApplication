@@ -3,9 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\Group;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class GroupSeeder extends Seeder
 {
@@ -25,12 +27,11 @@ class GroupSeeder extends Seeder
                 'name' => "test3"
             ]
         ]);
-
-        DB::table('user_group')->insert([
-            [
-                'user_id' => 1,
-                'group_id' => 1
-            ]
-        ]);
+        // DB::table('user_group')->insert([
+        //     [
+        //         'user_id' => 1,
+        //         'group_id' => 1
+        //     ]
+        // ]);
     }
 }
