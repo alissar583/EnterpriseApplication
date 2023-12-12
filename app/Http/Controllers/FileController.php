@@ -40,7 +40,7 @@ class FileController extends Controller
     {
         $user = Auth::user();
         return $user->load(['files' => function ($query) {
-            $query->select('files.id', 'files.status', 'files.group_id');
+            $query->where('status', FileStatusEnum::IN->value)->select('files.id', 'files.status', 'files.group_id');
         }]);
     }
 
@@ -77,7 +77,7 @@ class FileController extends Controller
                         'status' => FileStatusEnum::IN->value,
                     ]);
                 $files = File::query()->where('id', $request->ids)->pluck('path')->map(function ($filePath) {
-                    return 'http://192.168.247.197:8080/' .  $filePath;
+                    return asset($filePath);
                 })->toArray();
                 $user = Auth::user();
                 $user->files()->attach($request->ids, ['created_at' => now()]);
@@ -142,7 +142,7 @@ class FileController extends Controller
 
                 $data['files'][] = [
                     'id' => $file['id'],
-                    'path' => 'http://192.168.247.197:8080/' . $pivotRecords['path'],
+                    'path' => asset($file['path']),
                     'checkin_time' => $file['checkin_time'],
                     'checkout_time' => $file['checkout_time']
                 ];
@@ -152,7 +152,7 @@ class FileController extends Controller
                 $q->select('users.id', 'users.name', 'user_file.created_at as checkin_time', 'user_file.updated_at as checkout_time');
             }]);
             $data['id'] =  $pivotRecords['id'];
-            $data['path'] = 'http://192.168.247.197:8080/' . $pivotRecords['path'];
+            $data['path'] = asset($pivotRecords['path']);
 
             foreach ($pivotRecords['users'] as $user) {
 
