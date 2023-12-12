@@ -30,7 +30,7 @@ class FileController extends Controller
             $query->with(['files' => function ($query) {
                 if (request()->status)
                     $query->where('status', request()->status);
-                $query->select('id', 'status', 'group_id');
+                $query->select('id', 'status', 'group_id', 'name');
             }]);
         }]);
         return $user;
@@ -40,16 +40,21 @@ class FileController extends Controller
     {
         $user = Auth::user();
         return $user->load(['files' => function ($query) {
-            $query->where('status', FileStatusEnum::IN->value)->select('files.id', 'files.status', 'files.group_id');
+            $query->where('status', FileStatusEnum::IN->value)->select('files.id', 'files.status', 'files.group_id', 'files.name');
         }]);
     }
 
     public function store(StoreFileRequest $request)
     {
+        $file = $request->file('file');
+        $originalFileName = $file->getClientOriginalName();
+        $originalFileName = pathinfo($originalFileName, PATHINFO_FILENAME);
         $data = [
             'group_id' => $request->group_id,
             'path' => FileHelper::upload($request->file, $request->group_id)
         ];
+        $data['name'] = $originalFileName;
+
         File::query()->create($data);
         return ResponseHelper::success();
     }

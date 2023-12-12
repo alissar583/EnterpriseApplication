@@ -12,7 +12,8 @@ class File extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['group_id', 'path', 'status'];
+    protected $fillable = ['group_id', 'path', 'status', 'name'];
+
 
     protected $casts  = ['status' => FileStatusEnum::class];
     public function group(): BelongsTo
