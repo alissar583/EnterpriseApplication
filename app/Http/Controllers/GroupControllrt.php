@@ -9,7 +9,9 @@ class GroupControllrt extends Controller
 {
     public function index()
     {
-        $groups = Group::query()->get();
+        $groups = Group::query()->with('users', function($query) {
+            $query->where('is_admin', false);
+        })->get();
         return $this->sendResponse($groups);
     }
 
@@ -25,11 +27,14 @@ class GroupControllrt extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => ['string', 'required']
+            'name' => ['string', 'required', 'unique:groups,name']
         ]);
         $group = Group::query()->create($data);
         $userId = auth()->id();
         $group->users()->attach([$userId]);
+        $group->refresh()->load(['users' => function($query) {
+            $query->where('is_admin', false);
+        }]);
         return $this->sendResponse($group);
     }
 
