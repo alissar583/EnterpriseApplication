@@ -24,23 +24,29 @@ class FileController extends Controller
             'status' => Rule::enum(FileStatusEnum::class)
         ]);
         $user = auth()->user();
-        $user->load(['groups' => function ($query) {
-            $query->select('groups.id', 'name');
-            $query->with(['files' => function ($query) {
-                if (request()->status)
-                    $query->where('status', request()->status);
-                $query->select('id', 'status', 'group_id', 'name');
-            }]);
-        }]);
+        $user->load([
+            'groups' => function ($query) {
+                $query->select('groups.id', 'name');
+                $query->with([
+                    'files' => function ($query) {
+                        if (request()->status)
+                            $query->where('status', request()->status);
+                        $query->select('id', 'status', 'group_id', 'name');
+                    }
+                ]);
+            }
+        ]);
         return $user;
     }
 
     public function getCheckInFiles()
     {
         $user = Auth::user();
-        return $user->load(['files' => function ($query) {
-            $query->where('status', FileStatusEnum::IN->value)->select('files.id', 'files.status', 'files.group_id', 'files.name');
-        }]);
+        return $user->load([
+            'files' => function ($query) {
+                $query->where('status', FileStatusEnum::IN->value)->select('files.id', 'files.status', 'files.group_id', 'files.name');
+            }
+        ]);
     }
 
     public function store(StoreFileRequest $request)
@@ -80,8 +86,11 @@ class FileController extends Controller
                     ->update([
                         'status' => FileStatusEnum::IN->value,
                     ]);
-                $files = File::query()->whereIn('id', $request->ids)->pluck('path')->map(function ($filePath) {
-                    return asset($filePath);
+                $files = File::query()->whereIn('id', $request->ids)->get()->map(function ($filePath) {
+                    return [
+                        'path' => asset($filePath->path),
+                        'name' => $filePath->name
+                    ];
                 })->toArray();
                 $user = Auth::user();
                 $user->files()->attach($request->ids, ['created_at' => now()]);
@@ -99,31 +108,31 @@ class FileController extends Controller
         if ($request['type'] == FileStatusEnum::IN->value) {
             return (
                 $user->groups()
-                ->whereIn(
-                    'groups.id',
-                    $groupes
-                )
-                ->exists()
+                    ->whereIn(
+                        'groups.id',
+                        $groupes
+                    )
+                    ->exists()
                 &&
                 File::query()
-                ->whereIn('id', $request['ids'])
-                ->where('status',  FileStatusEnum::OUT->value)
-                ->count() === count($request['ids'])
+                    ->whereIn('id', $request['ids'])
+                    ->where('status', FileStatusEnum::OUT->value)
+                    ->count() === count($request['ids'])
 
             );
         } else {
             return (
                 $user->groups()
-                ->whereIn(
-                    'groups.id',
-                    $groupes
-                )
-                ->exists()
+                    ->whereIn(
+                        'groups.id',
+                        $groupes
+                    )
+                    ->exists()
                 &&
                 File::query()
-                ->whereIn('id', $request['ids'])
-                ->where('status', '=', FileStatusEnum::IN->value)
-                ->count() === count($request['ids'])
+                    ->whereIn('id', $request['ids'])
+                    ->where('status', '=', FileStatusEnum::IN->value)
+                    ->count() === count($request['ids'])
                 &&
                 (UserFile::query()->where('file_id', $request['ids'][0])->latest()->value('user_id') == $user->id)
             );
@@ -135,11 +144,13 @@ class FileController extends Controller
         $data = [];
 
         if ($request->user_id) {
-            $pivotRecords =  User::find($request->user_id, ['id', 'name'])->load(['files' => function ($q) {
-                $q->select('files.id', 'path', 'user_file.created_at as checkin_time', 'user_file.updated_at as checkout_time');
-            }]);
+            $pivotRecords = User::find($request->user_id, ['id', 'name'])->load([
+                'files' => function ($q) {
+                    $q->select('files.id', 'path', 'user_file.created_at as checkin_time', 'user_file.updated_at as checkout_time');
+                }
+            ]);
 
-            $data['id'] =  $pivotRecords['id'];
+            $data['id'] = $pivotRecords['id'];
             $data['name'] = $pivotRecords['name'];
 
             foreach ($pivotRecords['files'] as $file) {
@@ -152,10 +163,12 @@ class FileController extends Controller
                 ];
             }
         } elseif ($request->file_id) {
-            $pivotRecords =  File::find($request->file_id, ['id', 'path'])->load(['users' => function ($q) {
-                $q->select('users.id', 'users.name', 'user_file.created_at as checkin_time', 'user_file.updated_at as checkout_time');
-            }]);
-            $data['id'] =  $pivotRecords['id'];
+            $pivotRecords = File::find($request->file_id, ['id', 'path'])->load([
+                'users' => function ($q) {
+                    $q->select('users.id', 'users.name', 'user_file.created_at as checkin_time', 'user_file.updated_at as checkout_time');
+                }
+            ]);
+            $data['id'] = $pivotRecords['id'];
             $data['path'] = asset($pivotRecords['path']);
 
             foreach ($pivotRecords['users'] as $user) {
