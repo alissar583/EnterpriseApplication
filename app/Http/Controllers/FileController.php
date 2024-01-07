@@ -18,7 +18,6 @@ use Illuminate\Validation\Rule;
 
 class FileController extends Controller
 {
-
     public function index()
     {
         request()->validate([
@@ -81,7 +80,7 @@ class FileController extends Controller
                     ->update([
                         'status' => FileStatusEnum::IN->value,
                     ]);
-                $files = File::query()->where('id', $request->ids)->pluck('path')->map(function ($filePath) {
+                $files = File::query()->whereIn('id', $request->ids)->pluck('path')->map(function ($filePath) {
                     return asset($filePath);
                 })->toArray();
                 $user = Auth::user();

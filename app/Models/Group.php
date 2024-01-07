@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\App;
 class Group extends Model
 {
     use HasFactory;
+    protected $fillable = ['name'];
 
     public function users(): BelongsToMany
     {

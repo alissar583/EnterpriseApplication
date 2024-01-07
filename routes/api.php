@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\GroupControllrt;
 use GuzzleHttp\Cookie\FileCookieJar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('files', FileController::class)->only(['index', 'store']);
     Route::post('files/check-in-out', [FileController::class, 'checInOut'])->middleware('throttle:60,1');
     Route::get('files/get-check-in', [FileController::class, 'getCheckInFiles']);
-    Route::get('reports',[FileController::class,'reports']);
+    Route::get('reports', [FileController::class, 'reports'])->middleware('isAdmin');
 
+    Route::prefix('groups')->controller(GroupControllrt::class)->middleware('isAdmin')->group(function () {
+        Route::get('/', 'index');
+        Route::post('{group}/users','addUsers');
+        Route::post('/','store');
+    });
+
+    Route::prefix('users')->controller(AuthController::class)->middleware('isAdmin')->group(function () {
+        Route::get('/', 'users');
+    });
 });
