@@ -39,6 +39,10 @@ class FileController extends Controller
         return $user;
     }
 
+    public function allFiles() {
+        return File::query()->get();
+    }
+
     public function getCheckInFiles()
     {
         $user = Auth::user();

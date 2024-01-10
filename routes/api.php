@@ -36,6 +36,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('verify-code-two-factory', 'verifyTwoFactorAuthentication');
     });
 
+    Route::get('all-files', [FileController::class, 'allFiles']);
+
     Route::resource('files', FileController::class)->only(['index', 'store']);
     Route::post('files/check-in-out', [FileController::class, 'checInOut'])->middleware('throttle:60,1');
     Route::get('files/get-check-in', [FileController::class, 'getCheckInFiles']);
