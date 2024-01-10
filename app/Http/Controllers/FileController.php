@@ -40,7 +40,7 @@ class FileController extends Controller
     }
 
     public function allFiles() {
-        $this->sendResponse(File::query()->get());
+       return $this->sendResponse(File::query()->get());
     }
 
     public function getCheckInFiles()
