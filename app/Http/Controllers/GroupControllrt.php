@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Group;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class GroupControllrt extends Controller
 {
@@ -17,10 +18,11 @@ class GroupControllrt extends Controller
 
     public function addUsers(Request $request, Group $group)
     {
+        $userIds = $group->users()->pluck('users.id')->toArray();
         $request->validate([
-            'users' => ['array', 'required', 'exists:users,id']
+            'users' => ['array', 'required', 'exists:users,id', Rule::notIn($userIds)]
         ]);
-        $group->users()->attach($request['users']);
+        $group->users()->syncWithoutDetaching($request['users']);
         return $this->sendResponse([]);
     }
 

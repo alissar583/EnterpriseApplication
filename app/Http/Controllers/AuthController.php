@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RegisterRequest;
 use App\Mail\VerificationCodeMail;
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -58,10 +59,8 @@ class AuthController extends Controller
 
             $user->update(['two_factor_verified' => true]);
             return $this->sendResponse([], 'Two-factor authentication verified successfully.');
-
         }
         return $this->sendError([], 'Invalid two-factor authentication code. Please try again.', 200);
-
     }
 
     /**
@@ -82,15 +81,19 @@ class AuthController extends Controller
             $success['id'] = $user->id;
             $success['is_admin'] = $user->is_admin;
             return $this->sendResponse($success);
-
         } else {
             return $this->sendError([], 'Unauthorised.', 403);
-
         }
     }
 
-    public function users() {
-        $users = User::query()->where('is_admin', false)->get();
+    public function users(Request $request)
+    {
+        $request->validate([
+            'group_id' => ['exists:groups,id']
+        ]);
+        $users = User::query()
+            ->where('is_admin', false)
+            ->get();
         return $this->sendResponse($users);
     }
 }

@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dateTime('code_expired_at')->nullable();
-            $table->boolean('is_two_factor_enabled')->default(false);
-            $table->boolean('two_factor_verified')->default(false);
+            // $table->dateTime('code_expired_at')->nullable();
+            // $table->boolean('is_two_factor_enabled')->default(false);
+            // $table->boolean('two_factor_verified')->default(false);
         });
     }
 

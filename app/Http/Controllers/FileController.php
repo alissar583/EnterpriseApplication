@@ -77,19 +77,23 @@ class FileController extends Controller
             if ($request->type == FileStatusEnum::OUT->value) {
                 $file = File::query()->find($request['ids'][0]);
                 $path = FileHelper::replace($request->file, $file->path, $file->group_id);
+                $requestFile = $request->file('file');
+                $originalFileName = $requestFile->getClientOriginalName();
+                $originalFileName = pathinfo($originalFileName, PATHINFO_FILENAME);
                 $file->update([
                     'path' => $path,
-                    'status' => FileStatusEnum::OUT->value
+                    'status' => FileStatusEnum::OUT->value,
+                    // 'name' => $originalFileName
                 ]);
-                DB::table('user_file')->update([
+                DB::table('user_file')
+                ->where('file_id', $file->id)
+                ->where('user_id', auth()->id())
+                ->update([
                     'updated_at' => now()
                 ]);
             } elseif ($request->type == FileStatusEnum::IN->value) {
                 DB::beginTransaction();
-                File::query()->whereIn('id', $request->ids)
-                    ->update([
-                        'status' => FileStatusEnum::IN->value,
-                    ]);
+                
                 $files = File::query()->whereIn('id', $request->ids)->get()->map(function ($filePath) {
                     return [
                         'path' => asset($filePath->path),
@@ -98,6 +102,10 @@ class FileController extends Controller
                 })->toArray();
                 $user = Auth::user();
                 $user->files()->attach($request->ids, ['created_at' => now()]);
+                File::query()->whereIn('id', $request->ids)
+                    ->update([
+                        'status' => FileStatusEnum::IN->value,
+                    ]);
                 DB::commit();
             }
         } catch (Exception $exception) {
@@ -150,7 +158,7 @@ class FileController extends Controller
         if ($request->user_id) {
             $pivotRecords = User::find($request->user_id, ['id', 'name'])->load([
                 'files' => function ($q) {
-                    $q->select('files.id', 'path', 'user_file.created_at as checkin_time', 'user_file.updated_at as checkout_time');
+                    $q->select('files.id', 'files.name','path', 'user_file.created_at as checkin_time', 'user_file.updated_at as checkout_time');
                 }
             ]);
 
@@ -162,24 +170,27 @@ class FileController extends Controller
                 $data['files'][] = [
                     'id' => $file['id'],
                     'path' => asset($file['path']),
+                    'name' => $file['name'],
                     'checkin_time' => $file['checkin_time'],
                     'checkout_time' => $file['checkout_time']
                 ];
             }
         } elseif ($request->file_id) {
-            $pivotRecords = File::find($request->file_id, ['id', 'path'])->load([
+            $pivotRecords = File::find($request->file_id, ['id', 'path', 'name'])->load([
                 'users' => function ($q) {
-                    $q->select('users.id', 'users.name', 'user_file.created_at as checkin_time', 'user_file.updated_at as checkout_time');
+                    $q->select('users.id', 'users.name','users.email', 'user_file.created_at as checkin_time', 'user_file.updated_at as checkout_time');
                 }
             ]);
             $data['id'] = $pivotRecords['id'];
             $data['path'] = asset($pivotRecords['path']);
+            $data['name'] = $pivotRecords['name'];
 
             foreach ($pivotRecords['users'] as $user) {
 
                 $data['users'][] = [
                     'id' => $user['id'],
                     'name' => $user['name'],
+                    'email' => $user['email'],
                     'checkin_time' => $user['checkin_time'],
                     'checkout_time' => $user['checkout_time']
                 ];
